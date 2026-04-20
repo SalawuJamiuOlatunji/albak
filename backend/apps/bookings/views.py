@@ -1,4 +1,7 @@
 from rest_framework import generics, permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 from .models import Booking
 from .serializers import BookingSerializer
 
@@ -33,3 +36,26 @@ class BookingStatusUpdateView(generics.UpdateAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class BookingCancelView(APIView):
+    def post(self, request, pk):
+        try:
+            booking = Booking.objects.get(id=pk, user=request.user)
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=404)
+
+        if booking.status == "cancelled":
+            return Response({"error": "Already cancelled"}, status=400)
+        if booking.status == "confirmed":
+            return Response({"error": "Cannot cancel confirmed booking"}, status=400)
+
+        # restore stock
+        product = booking.product
+        product.stock_quantity += booking.quantity
+        product.save()
+
+        booking.status = "cancelled"
+        booking.save()
+
+        return Response({"message": "Booking cancelled successfully"})

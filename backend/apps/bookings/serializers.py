@@ -46,7 +46,15 @@ class BookingSerializer(serializers.ModelSerializer):
         product = validated_data.get("product")
         quantity = validated_data.get("quantity")
 
+        # check stock
+        if quantity > product.stock_quantity:
+            raise serializers.ValidationError("Not enough stock")
+
         total_price = product.price * quantity
+
+        # reduce stock
+        product.stock_quantity -= quantity
+        product.save()
 
         booking = Booking.objects.create(
             user=user,
@@ -57,6 +65,7 @@ class BookingSerializer(serializers.ModelSerializer):
             phone=validated_data.get("phone"),
             address=validated_data.get("address"),
             total_price=total_price,
+            **validated_data
         )
 
         return booking
