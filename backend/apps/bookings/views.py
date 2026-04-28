@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import Booking
 from .serializers import BookingSerializer
-
+from rest_framework.permissions import IsAdminUser
 
 class BookingCreateView(generics.CreateAPIView):
     serializer_class = BookingSerializer
@@ -59,3 +59,22 @@ class BookingCancelView(APIView):
         booking.save()
 
         return Response({"message": "Booking cancelled successfully"})
+
+class BookingUpdateStatusView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            booking = Booking.objects.get(id=pk)
+        except Booking.DoesNotExists:
+            return Response({"error": "Booking not found"}, status=404)
+
+        new_status = request.data.get("status")
+
+        if new_status not in ["confirmed", "completed"]:
+            return Response({"error": "Invalid status"}, status=400)
+
+        booking.status = new_status
+        booking.save()
+
+        return Response({"message": f"Booking marked as {new_status}"})

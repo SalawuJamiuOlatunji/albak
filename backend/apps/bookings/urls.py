@@ -4,7 +4,8 @@ from .views import (
     UserBookingHistoryView,
     AdminBookingListView,
     BookingStatusUpdateView,
-    BookingCancelView
+    BookingCancelView,
+    BookingUpdateStatusView
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path("all/", AdminBookingListView.as_view()),
     path("<int:pk>/status/", BookingStatusUpdateView.as_view()),
     path("<int:pk>/cancel/", BookingCancelView.as_view(), name="booking-cancel"),
+    path("<int:pk>/update-status/", BookingUpdateStatusView.as_view(), name="booking-update-status"),
 ]
